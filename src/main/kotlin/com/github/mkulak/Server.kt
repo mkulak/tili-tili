@@ -30,7 +30,7 @@ fun main(args: Array<String>) {
     Flyway().also { it.dataSource = dataSource }.migrate()
 
     val sessionFactory = SessionFactory(dataSource, PostgresDialect(), LoggingInterceptor())
-    val shortenedUrlDao = KweryShortenedUrlDao(sessionFactory)
+    val shortenedUrlDao = KweryShortenedUrlDao(vertx, sessionFactory)
     val handler = ShortenedUrlsHandlerImpl(shortenedUrlDao)
     val httpApi = HttpApi(vertx, handler)
     val router = httpApi.router()

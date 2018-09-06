@@ -1,20 +1,22 @@
 package com.github.mkulak
 
-import com.github.andrewoma.kwery.core.Row
-import com.github.andrewoma.kwery.core.SessionFactory
+import com.github.andrewoma.kwery.core.*
+import io.vertx.core.Vertx
+import io.vertx.kotlin.coroutines.awaitBlocking
+import io.vertx.kotlin.coroutines.awaitResult
 import java.net.URL
 
 
 interface ShortenedUrlDao {
-    fun persist(shortenedUrl: ShortenedUrl)
-    fun get(id: UrlId): ShortenedUrl?
-    fun get(userId: UserId, url: URL): ShortenedUrl?
-    fun getAll(userId: UserId): List<ShortenedUrl>
-    fun incrementSaveCount(id: UrlId)
-    fun incrementViewCount(id: UrlId)
+    suspend fun persist(shortenedUrl: ShortenedUrl)
+    suspend fun get(id: UrlId): ShortenedUrl?
+    suspend fun get(userId: UserId, url: URL): ShortenedUrl?
+    suspend fun getAll(userId: UserId): List<ShortenedUrl>
+    suspend fun incrementSaveCount(id: UrlId)
+    suspend fun incrementViewCount(id: UrlId)
 }
 
-class KweryShortenedUrlDao(val factory: SessionFactory) : ShortenedUrlDao {
+class KweryShortenedUrlDao(val vertx: Vertx, val factory: SessionFactory) : ShortenedUrlDao {
     val INSERT = """INSERT INTO shortened_url VALUES (:id, :url, :user_id, :view_count, :save_count)"""
     val SELECT_BY_ID = """SELECT id, url, user_id, view_count, save_count FROM shortened_url WHERE id = :id"""
     val SELECT_BY_USER_ID = """SELECT id, user_id, url, view_count, save_count FROM shortened_url WHERE user_id = :user_id"""
@@ -22,8 +24,8 @@ class KweryShortenedUrlDao(val factory: SessionFactory) : ShortenedUrlDao {
     val INCREMENT_VIEW_COUNT = """UPDATE shortened_url SET view_count = view_count + 1 WHERE id = :id"""
     val INCREMENT_SAVE_COUNT = """UPDATE shortened_url SET save_count = save_count + 1 WHERE id = :id"""
 
-    override fun persist(shortenedUrl: ShortenedUrl) =
-        factory.use<Unit> { session ->
+    override suspend fun persist(shortenedUrl: ShortenedUrl) =
+        query<Unit> {
             val params = mapOf(
                 "id" to shortenedUrl.id.value,
                 "url" to shortenedUrl.url.toString(),
@@ -31,37 +33,38 @@ class KweryShortenedUrlDao(val factory: SessionFactory) : ShortenedUrlDao {
                 "view_count" to shortenedUrl.viewCount,
                 "save_count" to shortenedUrl.saveCount
             )
-            session.insert(INSERT, params, f = {})
+            it.insert(INSERT, params, f = {})
         }
 
-    override fun get(id: UrlId): ShortenedUrl? =
-        factory.use {
+    override suspend fun get(id: UrlId): ShortenedUrl? =
+        query {
             it.select(SELECT_BY_ID, mapOf("id" to id.value), mapper = ::toShortenedUrl).singleOrNull()
         }
 
-    override fun get(userId: UserId, url: URL): ShortenedUrl? =
-        factory.use {
+    override suspend fun get(userId: UserId, url: URL): ShortenedUrl? =
+        query {
             val params = mapOf("user_id" to userId.value, "url" to url.toString())
             it.select(SELECT_BY_USER_ID_AND_URL, params, mapper = ::toShortenedUrl).singleOrNull()
         }
 
 
-    override fun getAll(userId: UserId): List<ShortenedUrl> =
-        factory.use {
+    override suspend fun getAll(userId: UserId): List<ShortenedUrl> =
+        query {
             it.select(SELECT_BY_USER_ID, mapOf("user_id" to userId.value), mapper = ::toShortenedUrl)
         }
 
 
-    override fun incrementSaveCount(id: UrlId) =
-        factory.use<Unit> {
+    override suspend fun incrementSaveCount(id: UrlId) =
+        query<Unit> {
             it.update(INCREMENT_SAVE_COUNT, mapOf("id" to id.value))
         }
 
-    override fun incrementViewCount(id: UrlId) =
-        factory.use<Unit> {
+    override suspend fun incrementViewCount(id: UrlId) =
+        query<Unit> {
             it.update(INCREMENT_VIEW_COUNT, mapOf("id" to id.value))
         }
 
+    private suspend fun <T> query(block: (Session) -> T): T = vertx.awaitBlocking { factory.use(block) }
 
     private fun toShortenedUrl(row: Row) =
         ShortenedUrl(
@@ -72,3 +75,4 @@ class KweryShortenedUrlDao(val factory: SessionFactory) : ShortenedUrlDao {
             row.int("save_count")
         )
 }
+
