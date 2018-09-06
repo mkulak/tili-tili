@@ -1,22 +1,40 @@
 package com.github.mkulak
 
-import io.vertx.core.*
-import io.vertx.core.http.HttpMethod
-import io.vertx.core.http.HttpServer
-import io.vertx.ext.web.Router
-import io.vertx.kotlin.coroutines.CoroutineVerticle
-import io.vertx.kotlin.coroutines.awaitResult
+import com.fasterxml.jackson.databind.PropertyNamingStrategy
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.github.andrewoma.kwery.core.SessionFactory
+import com.github.andrewoma.kwery.core.dialect.PostgresDialect
+import com.github.andrewoma.kwery.core.interceptor.LoggingInterceptor
+import com.zaxxer.hikari.HikariDataSource
+import io.vertx.core.Vertx
+import io.vertx.core.json.Json
+import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
 
 val logger = LoggerFactory.getLogger("Server")
 
 fun main(args: Array<String>) {
     val vertx = Vertx.vertx()
-    val router = Router.router(vertx).apply {
-        get("/").handler { ctx ->
-            ctx.response().end("Hello")
-        }
+
+    Json.mapper.apply {
+        registerModule(KotlinModule())
+        propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
     }
+
+    val dataSource = HikariDataSource().apply {
+        jdbcUrl = "jdbc:postgresql://localhost:5432/tili"
+        username = "postgres"
+        password = ""
+    }
+
+    Flyway().also { it.dataSource = dataSource }.migrate()
+
+    val sessionFactory = SessionFactory(dataSource, PostgresDialect(), LoggingInterceptor())
+    val shortenedUrlDao = KweryShortenedUrlDao(sessionFactory)
+    val handler = ShortenedUrlsHandlerImpl(shortenedUrlDao)
+    val httpApi = HttpApi(vertx, handler)
+    val router = httpApi.router()
+
     vertx.deployVerticle(HttpVerticle(router, 8080)) {
         if (it.succeeded()) {
             logger.info("Server started on http://localhost:8080")
@@ -27,9 +45,3 @@ fun main(args: Array<String>) {
     }
 }
 
-class HttpVerticle(val router: Router, val port: Int) : CoroutineVerticle() {
-    override suspend fun start() {
-        val server = vertx.createHttpServer()
-        awaitResult<HttpServer> { server.requestHandler(router::accept).listen(port, it) }
-    }
-}
