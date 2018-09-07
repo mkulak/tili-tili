@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.andrewoma.kwery.core.SessionFactory
 import com.github.andrewoma.kwery.core.dialect.PostgresDialect
 import com.github.andrewoma.kwery.core.interceptor.LoggingInterceptor
+import com.github.mkulak.utils.pimp
 import com.zaxxer.hikari.HikariDataSource
 import io.vertx.core.Vertx
 import io.vertx.core.json.Json
@@ -16,10 +17,7 @@ val logger = LoggerFactory.getLogger("Server")
 fun main(args: Array<String>) {
     val vertx = Vertx.vertx()
 
-    Json.mapper.apply {
-        registerModule(KotlinModule())
-        propertyNamingStrategy = PropertyNamingStrategy.SNAKE_CASE
-    }
+    Json.mapper.pimp()
 
     val dataSource = HikariDataSource().apply {
         jdbcUrl = "jdbc:postgresql://localhost:5432/tili"
