@@ -20,7 +20,7 @@ class KweryShortenedUrlDao(val vertx: Vertx, val factory: SessionFactory) : Shor
     val INSERT = """INSERT INTO shortened_url VALUES (:id, :url, :user_id, :view_count, :save_count)"""
     val SELECT_BY_ID = """SELECT id, url, user_id, view_count, save_count FROM shortened_url WHERE id = :id"""
     val SELECT_BY_USER_ID = """SELECT id, user_id, url, view_count, save_count FROM shortened_url WHERE user_id = :user_id"""
-    val SELECT_BY_USER_ID_AND_URL = """id, user_id, url, view_count, save_count FROM shortened_url WHERE user_id = :user_id AND url = :url"""
+    val SELECT_BY_USER_ID_AND_URL = """SELECT id, user_id, url, view_count, save_count FROM shortened_url WHERE user_id = :user_id AND url = :url"""
     val INCREMENT_VIEW_COUNT = """UPDATE shortened_url SET view_count = view_count + 1 WHERE id = :id"""
     val INCREMENT_SAVE_COUNT = """UPDATE shortened_url SET save_count = save_count + 1 WHERE id = :id"""
 
