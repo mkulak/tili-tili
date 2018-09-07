@@ -1,0 +1,59 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: URL shortener
+basePath: /
+schemes:
+- http
+consumes:
+- application/json
+produces:
+- application/json
+paths:
+  /short-urls:
+    get:
+      summary: List of all shortened urls for current user
+      operationId: listUrls
+      responses:
+        200:
+          schema:
+            $ref: '#/definitions/UrlsResponse'
+    post:
+      summary: Create shortened url
+      operationId: createShortenedUrl
+      parameters:
+      - name: payload
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/UrlRequest'
+      responses:
+        200:
+          schema:
+            $ref: '#/definitions/ShortenedUrl'
+definitions:
+  UrlRequest:
+    type: object
+    required:
+      - url
+    properties:
+      url:
+        type: string
+  UrlsResponse:
+    type: object
+    reqired:
+      - urls
+    properties:
+      urls:
+        type: array
+        items:
+          $ref: '#/definitions/ShortenedUrl'
+  ShortenedUrl:
+    required:
+    - url
+    - short_url
+    properties:
+      url:
+        type: string
+      short_url:
+        type: string
