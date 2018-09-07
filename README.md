@@ -7,7 +7,7 @@ Time spent: ~ 3 hours
 
 How to run:
 --
-* install local postgres server with user `postgres` and empty password. Create database 'tili'
+* install local postgres server with user `postgres` and empty password. Create database `tili`
 * run `./gradlew run`
 
 How to test
@@ -15,16 +15,21 @@ How to test
 First check [Swagger API](/api/swagger.yaml)
 
 Shorten url:
+
 `curl -X POST http://localhost:8080/short-urls -d "{\"url\":\"http://ya.ru\"}"`
 
 Retrieve all urls:
+
 `curl http://localhost:8080/short-urls` 
 
 Thought process:
 --
 1. MVP: postgres + jvm backend
+
 It's undesirable for id to be just sequential numbers (easy to guess) therefore we need better schema.
+
 Would like to avoid coordination, perhaps 8 random symbols will be enough
+
 In the real world I'd rather store last N shortened urls in cookies, and I don't see use case for admin page
 (how would you present millions of links on a page? For what reason?)
 
@@ -34,6 +39,7 @@ In the real world I'd rather store last N shortened urls in cookies, and I don't
 3. Implement whole thing using AWS: api gateway + lambda + dynamodb + S3 (for serving static part of front-end).
 
 4. Idea get stable id by calculating it as a hash("user id" + "url string") to 5 bytes (and then do url-safe Base64 encode to 8 characters).
+
 Insert on conflict: overwrite
 
 Design choices:
