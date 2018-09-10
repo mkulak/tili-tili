@@ -16,7 +16,7 @@ class Application : RComponent<RProps, ApplicationPageState>() {
             main("mt-0 mt-md-2 mt-lg-0") {
                 attrs { role = "main" }
                 span {
-                    +"THIS IS CONTENT 22!!"
+                    +"THIS IS CONTENT 55"
                 }
 //                switch {
 //                    route("/", HomeScreen::class, exact = true)
