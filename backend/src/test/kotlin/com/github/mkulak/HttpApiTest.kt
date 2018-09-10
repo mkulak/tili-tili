@@ -6,7 +6,8 @@ import io.vertx.core.Vertx
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.HttpServer
 import io.vertx.core.json.Json
-import io.vertx.ext.web.client.*
+import io.vertx.ext.web.client.HttpResponse
+import io.vertx.ext.web.client.WebClient
 import io.vertx.kotlin.coroutines.awaitResult
 import io.vertx.kotlin.ext.web.client.WebClientOptions
 import kotlinx.coroutines.experimental.runBlocking

@@ -1,7 +1,5 @@
 package com.github.mkulak
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategy
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.github.andrewoma.kwery.core.SessionFactory
 import com.github.andrewoma.kwery.core.dialect.PostgresDialect
 import com.github.andrewoma.kwery.core.interceptor.LoggingInterceptor
@@ -33,9 +31,9 @@ fun main(args: Array<String>) {
     val httpApi = HttpApi(vertx, handler)
     val router = httpApi.router()
 
-    vertx.deployVerticle(HttpVerticle(router, 8080)) {
+    vertx.deployVerticle(HttpVerticle(router, 9090)) {
         if (it.succeeded()) {
-            logger.info("Server started on http://localhost:8080")
+            logger.info("Server started on http://localhost:9090")
         } else {
             vertx.close()
             logger.error("Can't start server:", it.cause())

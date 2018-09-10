@@ -1,0 +1,70 @@
+group 'com.github.mkulak'
+version '0.1.0'
+
+apply plugin: 'kotlin2js'
+apply plugin: 'kotlin-dce-js'
+apply plugin: 'org.jetbrains.kotlin.frontend'
+//apply plugin: 'kotlin-platform-js'
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version"
+
+    compile "org.jetbrains.kotlinx:kotlinx-html-js:$html_version"
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:$kotlinx_coroutines_version"
+
+    compile "org.jetbrains:kotlin-extensions:$kotlin_js_ext_version"
+    compile "org.jetbrains:kotlin-react:$kotlin_wrapper_version"
+    compile "org.jetbrains:kotlin-react-dom:$kotlin_wrapper_version"
+}
+
+def outputDir = "${projectDir}/web"
+
+kotlinFrontend {
+    downloadNodeJsVersion = "8.11.2"
+    sourceMaps = false
+
+    npm {
+        replaceVersion "kotlinx-html-js", "$kotlin_version"
+        replaceVersion "kotlinx-html-shared", "$kotlin_version"
+        replaceVersion "kotlin-js-library", "$kotlin_version"
+
+        dependency "react", "16.3.1"
+        dependency "react-dom"
+        dependency "react-router"
+        dependency "react-router-dom"
+        dependency "react-markdown"
+        dependency "jquery"
+
+        devDependency "babel-loader", "7.1.5"
+        devDependency "babel-core", "6.26.3"
+        devDependency "css-loader"
+        devDependency "karma"
+        devDependency "style-loader"
+        devDependency "source-map-loader"
+    }
+
+    webpackBundle {
+//        publicPath = "/frontend/"
+        bundleName = "main"
+        publicPath = "/"
+        contentPath = file('src/main/web') // a file that represents a directory to be served by dev server)
+//        contentPath = file("$project.buildDir.path/js/") // a file that represents a directory to be served by dev server)
+        port = 8080
+//        proxyUrl = "http://localhost:9090/"
+        proxyUrl = ""
+        sourceMapEnabled = true
+        stats = "errors-only"
+    }
+}
+
+compileKotlin2Js {
+    kotlinOptions.metaInfo = true
+//    kotlinOptions.outputFile = "$project.buildDir.path/js/${project.name}.js"
+    kotlinOptions.sourceMap = true
+    kotlinOptions.sourceMapEmbedSources = "always"
+    kotlinOptions.moduleKind = 'commonjs'
+    kotlinOptions.main = "call"
+}
+
+kotlin.experimental.coroutines = "enable"
